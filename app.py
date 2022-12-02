@@ -160,7 +160,7 @@ def load_7days():
                     day_today = "0" + str(date.day)
                 else:
                     day_today = str(date.day)
-                date = date - datetime.timedelta(days=8)
+                date = date - datetime.timedelta(days=15)
                 year = str(date.year)
                 if len(str(date.month)) == 1:
                     month = "0" + str(date.month)
