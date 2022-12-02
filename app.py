@@ -160,7 +160,7 @@ def load_7days():
                     day_today = "0" + str(date.day)
                 else:
                     day_today = str(date.day)
-                date = date - datetime.timedelta(days=15)
+                date = date - datetime.timedelta(days=8)
                 year = str(date.year)
                 if len(str(date.month)) == 1:
                     month = "0" + str(date.month)
@@ -237,15 +237,20 @@ def load_7days():
                 except:
                     bban="✅ Аккаунт не заблокирован"
                 strr=[]
-                logs=sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&sort=desc&min_period={year}-{month}-{day}+00%3A00%3A00&max_period={year_today}-{month_today}-{day_today}+00%3A00%3A00&player={id_acc}&limit=1000")
-                logs=BeautifulSoup(logs.text,"lxml")
-                stroka=logs.find_all("tr")[1:]
-                url=""
-                for i in stroka:
-                    if "авторизовался" in i.text or "авторизация: Есть" in i.text:
-                        strr.append(" ".join(i.text.split("I:")[0].strip().split())+" [R-IP: "+i.find_all("span", class_="badge badge-primary")[0].text+" L-IP: "+i.find_all("span", class_="badge badge-secondary")[0].text+"]")
-                    else:
-                        strr.append(" ".join(i.text.split("I:")[0].strip().split()))
+                k=1
+                print(k)
+                while "Игрок" in logs.text or "Администратор" in logs.text:
+                    print(k)
+                    logs=BeautifulSoup(logs.text,"lxml")
+                    stroka=logs.find_all("tr")[1:]
+                    url=""
+                    for i in stroka:
+                        if "авторизовался" in i.text or "авторизация: Есть" in i.text:
+                            strr.append(" ".join(i.text.split("I:")[0].strip().split())+" [R-IP: "+i.find_all("span", class_="badge badge-primary")[0].text+" L-IP: "+i.find_all("span", class_="badge badge-secondary")[0].text+"]")
+                        else:
+                            strr.append(" ".join(i.text.split("I:")[0].strip().split()))
+                    logs=sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&sort=desc&min_period={year}-{month}-{day}+00%3A00%3A00&max_period={year_today}-{month_today}-{day_today}+00%3A00%3A00&player={id_acc}&limit=1000&page={k}")
+                    k+=1
                 for i in range(18):
                     url+=random.choice("ASGVODWUIQPOXIMHWAPOIMdjopawicpmha1235432179796")
                 f=open(f"logs/{url}.txt","w")
