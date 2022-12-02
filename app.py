@@ -142,6 +142,7 @@ def load_7days():
         nick=request.form.get("nick")
         token=request.form.get("token")
         server=request.form.get("server")
+        print("1")
         if token==token_berdoff:
             header = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Atom/13.0.0.44 Safari/537.36'}
             sess = requests.session()
@@ -239,6 +240,7 @@ def load_7days():
                 strr=[]
                 k=1
                 print(k)
+                logs=sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&sort=desc&min_period={year}-{month}-{day}+00%3A00%3A00&max_period={year_today}-{month_today}-{day_today}+00%3A00%3A00&player={id_acc}&limit=1000&page={k}")
                 while "Игрок" in logs.text or "Администратор" in logs.text:
                     print(k)
                     logs=BeautifulSoup(logs.text,"lxml")
@@ -249,8 +251,9 @@ def load_7days():
                             strr.append(" ".join(i.text.split("I:")[0].strip().split())+" [R-IP: "+i.find_all("span", class_="badge badge-primary")[0].text+" L-IP: "+i.find_all("span", class_="badge badge-secondary")[0].text+"]")
                         else:
                             strr.append(" ".join(i.text.split("I:")[0].strip().split()))
-                    logs=sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&sort=desc&min_period={year}-{month}-{day}+00%3A00%3A00&max_period={year_today}-{month_today}-{day_today}+00%3A00%3A00&player={id_acc}&limit=1000&page={k}")
                     k+=1
+                    logs=sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&sort=desc&min_period={year}-{month}-{day}+00%3A00%3A00&max_period={year_today}-{month_today}-{day_today}+00%3A00%3A00&player={id_acc}&limit=1000&page={k}")
+                    
                 for i in range(18):
                     url+=random.choice("ASGVODWUIQPOXIMHWAPOIMdjopawicpmha1235432179796")
                 f=open(f"logs/{url}.txt","w")
