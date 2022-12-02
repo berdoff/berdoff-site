@@ -498,6 +498,18 @@ def get_join():
             else:
                 return {"status":"ne ok","reason":"Логи не авторизованы"}
 
+@app.route("/api/forms",methods=["GET","POST"])
+def go_form():
+    if request.method == "GET" or request.method == "POST":
+        token=request.form.get("token")
+        check=request.form.get("check")
+        #if token=="321321dwadwad21" and check=="1":
+        a=collection.find({"status":0})
+        forms=[]
+        for i in a:
+            forms.append(i["forma"])
+            collection.update_one(i,{"$set":{"status":1}})
+        return json.dumps(forms)
 
 @app.route("/api/forms_plus",methods=["GET","POST"])
 def forms_plus():
