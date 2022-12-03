@@ -240,12 +240,12 @@ def load_7days():
                 strr=[]
                 k=1
                 print(k)
+                url=""
                 logs=sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&sort=desc&min_period={year}-{month}-{day}+00%3A00%3A00&max_period={year_today}-{month_today}-{day_today}+00%3A00%3A00&player={id_acc}&limit=1000&page={k}")
                 while "Игрок" in logs.text or "Администратор" in logs.text:
                     print(k)
                     logs=BeautifulSoup(logs.text,"lxml")
                     stroka=logs.find_all("tr")[1:]
-                    url=""
                     for i in stroka:
                         if "авторизовался" in i.text or "авторизация: Есть" in i.text:
                             strr.append(" ".join(i.text.split("I:")[0].strip().split())+" [R-IP: "+i.find_all("span", class_="badge badge-primary")[0].text+" L-IP: "+i.find_all("span", class_="badge badge-secondary")[0].text+"]")
