@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+ 
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Панель игрока</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static',filename='favicon.ico') }}"/>
+    <link href="{{ url_for('static',filename='sidebars.css') }}" rel="stylesheet">
+    <style type="text/css">
+        body{
+            background-color: rgb(19, 19, 19);
+        }
+    </style>
+</head>
+ 
+<body>
+ 
+    <div class="container-fluid">
+        <div class="row flex-nowrap">
+            <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0" style="background-color: #1e1e1e">
+                <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
+                    <!-- Заголовок меню -->
+                    <a href="/"
+                        class="d-flex align-items-center pb-3 mb-md-0 me-md-auto text-white text-decoration-none" >
+                        <span class="fs-5 d-none d-sm-inline" id="corp">Berdoff corp</span>
+                    </a>
+                    <!-- элементы меню -->
+                    <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
+                        <li class="nav-item">
+                            <a href="/profile?id={{c_user.get_id()}}" class="nav-link align-middle px-0" style="color: rgb(135, 83, 83);">
+                                <i class="fs-4 bi-house" id="glavnaya" ></i>
+                                <span class="ms-1 d-none d-sm-inline">Главная</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/members" class="nav-link align-middle px-0">
+                                <i class="fs-4 bi-lightning-charge-fill" id="glavnaya"></i>
+                                <span class="ms-1 d-none d-sm-inline">Лидеры/замы</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="/antiblat" class="nav-link align-middle px-0">
+                                <i class="fs-4 bi-briefcase-fill" id="glavnaya"></i>
+                                <span class="ms-1 d-none d-sm-inline">Антиблат</span>
+                            </a>
+                        </li>
+ 
+                        <li class="nav-item">
+                            <a href="/quests" class="nav-link align-middle px-0">
+                                <i class="fs-4 bi-book" id="glavnaya"></i>
+                                <span class="ms-1 d-none d-sm-inline">Задания</span>
+                            </a>
+                        </li>
+
+                       
+                    </ul>
+                    <hr>
+                    <!-- нижнее дополнительное меню -->
+                    <div class="dropdown pb-4 mt-auto">
+                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+                            id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src={{ url_for('static',filename=c_user.ava_min()) }} alt="ava" width="50" height="50" class="rounded-circle">
+                            <span class="d-none d-sm-inline mx-1">&nbsp;{{c_user.rank()}}<br>&nbsp;{{c_user.nick()}}</span>
+                            
+                            
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+                            <li><a class="dropdown-item" href="/logout">Выйти</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- содержимое -->
+            <div class="col py-3">
+                <img src={{ url_for('static',filename=ava) }} alt="ava_big">
+               
+            </div>
+            <div class="col py-3" style="margin-top:5%;margin-right:10%">
+
+
+                {%if dostup_int>1%} 
+                <table class="table" style="width:40vw;  border: solid">
+                    <tbody>
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Ник</th>
+                        <td style="color: rgb(179, 179, 179)">{{user['nick']}}</td>
+                      </tr>
+
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Должность</th>
+                        <td style="color: rgb(179, 179, 179)">{{user['rank']}}</td>
+                      </tr>
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Вконтакте</th>
+                        <td style="color: rgb(179, 179, 179)" href="https://vk.com/id{{user['id_vk']}}">https://vk.com/id{{user['id_vk']}}</td>
+                      </tr>
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Доступ</th>
+                        <td style="color: rgb(179, 179, 179)">{{user['dostup']}}</td>
+                      </tr>
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Дата постановления</th>
+                        <td style="color: rgb(179, 179, 179)">{{user['add_data']}}</td>
+                      </tr>
+
+                    </tbody>
+                  </table>
+                {%else%}
+                <table class="table" style="width:40vw; border: solid;">
+                    <tbody>
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Ник</th>
+                        <td style="color: rgb(179, 179, 179)">{{user['nick']}}</td>
+                      </tr>
+                  
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Фракция</th>
+                        <td style="color: rgb(179, 179, 179)">{{name_frac[user['frac_id']|string]}}</td>
+                      </tr>
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Должность</th>
+                        <td style="color: rgb(179, 179, 179)">{{user['rank']}}</td>
+                      </tr>
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Выговоры</th>
+                        <td style="color: rgb(179, 179, 179)">{{user['vigs']}}/5</td>
+                      </tr>
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Предупреждения</th>
+                        <td style="color: rgb(179, 179, 179)">{{user['preds']}}/3</td>
+                      </tr>
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Вконтакте</th>
+                        <td style="color: rgb(179, 179, 179)" href="https://vk.com/id{{user['id_vk']}}">https://vk.com/id{{user['id_vk']}}</td>
+                      </tr>
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Баллы</th>
+                        <td style="color: rgb(179, 179, 179)">{{user['main_balls']}}</td>
+                      </tr>
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Тип постановления</th>
+                        <td style="color: rgb(179, 179, 179)">{{user['type_add']}}</td>
+                      </tr>
+
+
+
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Дата постановления</th>
+                        <td style="color: rgb(179, 179, 179)">{{user["add_data"]}}</td>
+                      </tr>
+                      <tr style="background-color: #1e1e1e">
+                        <th scope="row" style="color: rgb(179, 179, 179)">Дата срока</th>
+                        <td style="color: rgb(179, 179, 179)">{{user["srok_data"]}}</td>
+                      </tr>
+                      
+                    </tbody>
+                  </table>
+                {%endif%}
+
+                
+               
+            </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+ 
+</html>

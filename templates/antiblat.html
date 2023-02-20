@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+ 
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Панель игрока</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static',filename='favicon.ico') }}"/>
+    <link href="{{ url_for('static',filename='sidebars.css') }}" rel="stylesheet">
+</head>
+ 
+<body>
+  
+
+
+    <div class="container-fluid">
+        <div class="row flex-nowrap">
+            <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0" style="background-color: #1e1e1e">
+                <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
+                    <!-- Заголовок меню -->
+                    <a href="/"
+                        class="d-flex align-items-center pb-3 mb-md-0 me-md-auto text-white text-decoration-none" >
+                        <span class="fs-5 d-none d-sm-inline" id="corp">Berdoff corp</span>
+                    </a>
+                    <!-- элементы меню -->
+                    <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
+                        <li class="nav-item">
+                            <a href="/profile?id={{user.get_id()}}" class="nav-link align-middle px-0">
+                                <i class="fs-4 bi-house" id="glavnaya"></i>
+                                <span class="ms-1 d-none d-sm-inline">Главная</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/members" class="nav-link align-middle px-0">
+                                <i class="fs-4 bi-lightning-charge-fill" id="glavnaya"></i>
+                                <span class="ms-1 d-none d-sm-inline">Лидеры/замы</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="/antiblat" class="nav-link align-middle px-0" style="color: rgb(135, 83, 83);">
+                                <i class="fs-4 bi-briefcase-fill" id="glavnaya"></i>
+                                <span class="ms-1 d-none d-sm-inline">Антиблат</span>
+                            </a>
+                        </li>
+ 
+                        <li class="nav-item">
+                            <a href="/quests" class="nav-link align-middle px-0">
+                                <i class="fs-4 bi-book" id="glavnaya"></i>
+                                <span class="ms-1 d-none d-sm-inline">Задания</span>
+                            </a>
+                        </li>
+
+                       
+                    </ul>
+                    <hr>
+                    <!-- нижнее дополнительное меню -->
+                    <div class="dropdown pb-4 mt-auto">
+                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+                            id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src={{ url_for('static',filename=user.ava_min()) }} alt="ava" width="50" height="50" class="rounded-circle">
+                            <span class="d-none d-sm-inline mx-1">&nbsp;{{user.rank()}}<br>&nbsp;{{user.nick()}}</span>
+                            
+                            
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+                            <li><a class="dropdown-item" href="/logout">Выйти</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- содержимое -->
+              <div style="margin-top: 5%">
+                {% if user.frac_id() in [11,12,13,14,15,25] and user.dostup()=="1" %}
+                <form style="margin-left: 20%; width: 40%">
+                  <div class="form-group">
+                    <label style="margin-top:2vh" for="exampleInputEmail1">Имя_Фамилия(Кандидата):</label>
+                    <input style="margin-top:1vh; height:5vh" type="text" name="zam_nick" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Имя_Фамилия(Кандидата):"required>
+                    
+                  </div>
+                  <div class="form-group">
+                    <label style="margin-top:2vh" for="exampleFormControlSelect1">Поставил/снял (заместителя):</label>
+                    <select style="margin-top:1vh; height:5vh" name="zam_add" class="form-control" id="exampleFormControlSelect1"required>
+                      <option>Поставил</option>
+                      <option>Снял</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label style="margin-top:2vh" for="exampleInputEmail1">VK:</label>
+                    <input style="margin-top:1vh; height:5vh" type="text" name="zam_vk" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="VK:"required>
+                    
+                  </div>
+                  <div class="form-group">
+                    <label style="margin-top:2vh" for="exampleInputPassword1">Screen /stats, история наказаний + /time (от кандидата):</label>
+                    <input style="margin-top:1vh; height:5vh" type="text" name="zam_stats" class="form-control" id="exampleInputPassword1" placeholder="Screen /stats, история наказаний + /time (от кандидата):"required>
+                  </div>
+                  
+                  <button style="margin-top: 3vh; margin-left: 34vh; width: 15vh; height: 5vh" type="submit" class="btn btn-dark">Отправить</button>
+                </form>
+                {% elif user.frac_id() in [16,17,18,19] and  user.dostup()=="1" %}
+                <form style="margin-left: 20%; width: 40%">
+                  <div class="form-group">
+                    <label style="margin-top:2vh" for="exampleInputEmail1">Имя_Фамилия(Кандидата):</label>
+                    <input style="margin-top:1vh; height:5vh" type="text"  name="zam_nick" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Имя_Фамилия(Кандидата):"required>
+                    
+                  </div>
+                  <div class="form-group">
+                    <label style="margin-top:2vh" for="exampleFormControlSelect1">Поставил/снял (заместителя):</label>
+                    <select style="margin-top:1vh; height:5vh" name="zam_add" class="form-control" id="exampleFormControlSelect1">
+                      <option>Поставил</option>
+                      <option>Снял</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label style="margin-top:2vh" for="exampleInputEmail1">VK:</label>
+                    <input style="margin-top:1vh; height:5vh" name="zam_vk" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="VK:" required>
+                  
+                  </div>
+                  <div class="form-group">
+                    <label style="margin-top:2vh" for="exampleInputPassword1">Screen /stats, история наказаний + /time (от кандидата):</label>
+                    <input style="margin-top:1vh; height:5vh" type="text" name="zam_stats" class="form-control" id="exampleInputPassword1" placeholder="Screen /stats, история наказаний + /time (от кандидата):"required>
+                  </div>
+                  <div class="form-group">
+                    <label style="margin-top:2vh" for="exampleInputPassword1">Ссылка на RP биографию:</label>
+                    <input style="margin-top:1vh; height:5vh" name="zam_bio" type="text" class="form-control" id="exampleInputPassword1" placeholder="Ссылка на RP биографию:"required>
+                  </div>
+                  <div class="form-group">
+                    <label style="margin-top:2vh" for="exampleInputPassword1">Док-во, что ник подходит по национальности к вашей мафии:</label>
+                    <input style="margin-top:1vh; height:5vh" type="text" name="zam_docs" class="form-control" id="exampleInputPassword1" placeholder="Док-во, что ник подходит по национальности к вашей мафии:" required>
+                  </div>
+
+                 
+                  <button style="margin-top: 3vh; margin-left: 34vh; width: 15vh; height: 5vh" type="submit" class="btn btn-dark">Отправить</button>
+                </form>
+                {% elif user.dostup_int()>=2 %}
+                  <h4>Admin Panel</h4>
+                  <table class="table align-middle mb-0 bg-white" style="width: 170vh">
+                    <thead class="bg-light">
+                      <tr>
+                        <th style="width: 20vh;">Лидер</th>
+                        <th style="width: 20vh;">Ник зама</th>
+                        <th style="width: 20vh;">VK</th>
+                        <th style="width: 20vh;">ADD/DEL</th>
+                        <th style="width: 20vh;">/stats</th>
+                        <th style="width: 20vh;">RP BIO</th>
+                        <th style="width: 20vh;">DOCS BIO</th>
+                        <th style="width: 20vh;">+/-</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for i in users %}
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center">
+                            <img
+                                src={{ url_for('static',filename=i['ava']) }}
+                                alt=""
+                                style="width: 45px; height: 45px"
+                                class="rounded-circle"
+                                />
+                            <div class="ms-3">
+                              <p class="fw-bold mb-1">{{i['nick']}}</p>
+                              <p class="text-muted mb-0">{{i['frac']}}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <p class="fw-normal mb-1">{{i['zam_nick']}}</p>
+                        </td>
+                        <td>
+                          <a href="https://vk.com/id{{i['id_vk']}}" target="_blank" style="color:black"><p class="fw-normal mb-1">https://vk.com/id{{i['id_vk']}}</p></a>
+                        </td>
+                        <td>
+                          <a target="_blank" style="color:black">{{i['zam_add']}}</a>
+                        </td>
+                        <td><a href="{{i['stats']}}" target="_blank" style="color:black">{{i['stats']}}</a></td>
+                        <td>
+                          <a href="{{i['bio']}}" target="_blank" style="color:black">{{i['bio']}}</a>
+                        </td>
+                        <td>
+                          <a href="{{i['docs']}}" target="_blank" style="color:black">{{i['docs']}}</a>
+                        </td>
+                        <td>
+                          <button onclick="{window.location.href='antiblat?zam_nick={{i['zam_nick']}}&add=1';}" class="fs-4 bi-check-square"></button>
+                          <button onclick="{window.location.href='antiblat?zam_nick={{i['zam_nick']}}&add=0';}" class="fs-4 bi-x-square"></button>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% else %}
+                <h3>Нет доступа</h3>
+
+
+                {% endif %}
+              </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

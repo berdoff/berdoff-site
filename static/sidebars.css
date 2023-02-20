@@ -1,0 +1,17 @@
+
+.nav-link {
+        color: rgb(255, 255, 255);
+}
+
+
+.nav-link:hover {
+        color: rgb(135, 83, 83);
+
+}
+.dropdown:hover{
+        color: rgb(135, 83, 83);
+}
+#hello{
+    text-indent:50px;
+    margin-top: 70px;
+}

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+ 
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Панель игрока</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static',filename='favicon.ico') }}"/>
+    <link href="{{ url_for('static',filename='sidebars.css') }}" rel="stylesheet">
+    <style type="text/css">
+        body{
+            background-color: rgb(19, 19, 19);
+        }
+    </style>
+</head>
+ 
+<body>
+ 
+    <div class="container-fluid">
+        <div class="row flex-nowrap">
+            <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0" style="background-color: #1e1e1e">
+                <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
+                    <!-- Заголовок меню -->
+                    <a href="/"
+                        class="d-flex align-items-center pb-3 mb-md-0 me-md-auto text-white text-decoration-none" >
+                        <span class="fs-5 d-none d-sm-inline" id="corp">Berdoff corp</span>
+                    </a>
+                    <!-- элементы меню -->
+                    <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
+                        <li class="nav-item">
+                            <a href="/profile?id={{user.get_id()}}" class="nav-link align-middle px-0">
+                                <i class="fs-4 bi-house" id="glavnaya"></i>
+                                <span class="ms-1 d-none d-sm-inline">Главная</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/members" class="nav-link align-middle px-0">
+                                <i class="fs-4 bi-lightning-charge-fill" id="glavnaya"></i>
+                                <span class="ms-1 d-none d-sm-inline">Лидеры/замы</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="/antiblat" class="nav-link align-middle px-0">
+                                <i class="fs-4 bi-briefcase-fill" id="glavnaya"></i>
+                                <span class="ms-1 d-none d-sm-inline">Антиблат</span>
+                            </a>
+                        </li>
+ 
+                        <li class="nav-item">
+                            <a href="/quests" class="nav-link align-middle px-0" style="color: rgb(135, 83, 83);">
+                                <i class="fs-4 bi-book" id="glavnaya"></i>
+                                <span class="ms-1 d-none d-sm-inline">Задания</span>
+                            </a>
+                        </li>
+
+                       
+                    </ul>
+                    <hr>
+                    <!-- нижнее дополнительное меню -->
+                    <div class="dropdown pb-4 mt-auto">
+                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+                            id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src={{ url_for('static',filename=user.ava_min()) }} alt="ava" width="50" height="50" class="rounded-circle">
+                            <span class="d-none d-sm-inline mx-1">&nbsp;{{user.rank()}}<br>&nbsp;{{user.nick()}}</span>
+                            
+                            
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+                            <li><a class="dropdown-item" href="/logout">Выйти</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- содержимое -->
+
+           
+            {% if user.frac_id() in [11,12,13,14,15,25] and user.dostup_int()<=1%}
+
+
+
+            <form style="margin-left: 20%; margin-top:8%; width: 40%">
+                <div class="form-group">
+                  <label style="margin-top:2vh; color: rgb(179, 179, 179)" for="exampleFormControlSelect1">Выбор задания:</label>
+                  <select style="margin-top:1vh; height:5vh" name="quest" class="form-control" id="exampleFormControlSelect1">
+                    {%for quest in quests_ghetto %}
+                    <option>{{quest}}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label style="margin-top:2vh;color: rgb(179, 179, 179)" for="exampleInputEmail1">Доказательства:</label>
+                  <input style="margin-top:1vh; height:5vh" name="docs" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Доказательства" required>
+                
+                </div>
+               
+                <button style="margin-top: 3vh; margin-left: 34vh; width: 15vh; height: 5vh; border: 2px solid  rgb(179, 179, 179);" type="submit" class="btn btn-dark">Отправить</button>
+              </form>
+           
+
+
+
+
+
+
+            {% elif user.frac_id() in [16,17,18,19] and user.dostup_int()<=1%}
+            <form style="margin-left: 20%; margin-top:8%; width: 40%">
+                <div class="form-group">
+                  <label style="margin-top:2vh; color: rgb(179, 179, 179)" for="exampleFormControlSelect1">Выбор задания:</label>
+                  <select style="margin-top:1vh; height:5vh" name="quest" class="form-control" id="exampleFormControlSelect1">
+                    {%for quest in quests_mafii %}
+                    <option>{{quest}}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label style="margin-top:2vh;color: rgb(179, 179, 179)" for="exampleInputEmail1">Доказательства:</label>
+                  <input style="margin-top:1vh; height:5vh" name="docs" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Доказательства" required>
+                
+                </div>
+               
+                <button style="margin-top: 3vh; margin-left: 34vh; width: 15vh; height: 5vh; border: 2px solid  rgb(179, 179, 179);" type="submit" class="btn btn-dark">Отправить</button>
+              </form>
+           
+            {% elif user.dostup_int()>=2 %}
+            <style type="text/css">
+                body{
+                    background-color: rgb(253, 253, 253);
+                }
+            </style>
+              
+              <table class="table align-middle mb-0 bg-white" style="width: 170vh">
+                <thead class="bg-light">
+                  <tr>
+                    <th style="width: 20vh;">Ник</th>
+                    <th style="width: 20vh;">Награда</th>
+                    <th style="width: 20vh;">Задание</th>
+                    <th style="width: 20vh;">Доказательства</th>
+                    <th style="width: 20vh;">+/-</th>
+                  </tr>
+                </thead>
+                <tbody>
+                    {% for quest in questss %}
+                    <tr>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <img
+                              src={{ url_for('static',filename=avas[(quest['frac_id']|string)] ) }}
+                              alt="no ava"
+                              style="width: 45px; height: 45px"
+                              class="rounded-circle"
+                              />
+                          <div class="ms-3">
+                            <p class="fw-bold mb-1">{{quest['nick']}}</p>
+                            <p class="text-muted mb-0">{{name_fracs[quest['frac_id']|string]}}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <p class="fw-normal mb-1">{{quest['nagrada']}}</p>
+                      </td>
+                      <td>
+                          <p class="fw-normal mb-1">{{quest['quest']}}</p>
+                        </td>
+                        <td>
+                          <p class="fw-normal mb-1">{{quest['docs']}}</p>
+                        </td>
+                      <td>
+                        <button onclick="{window.location.href='quests?id={{quest['id']}}&acc=1';}" class="fs-4 bi-check-square"></button>
+                        <button onclick="{window.location.href='quests?id={{quest['id']}}&acc=0';}" class="fs-4 bi-x-square"></button>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+              </table>
+        {% else %}
+            <h4>Нет доступа</h4>
+        {% endif %} 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
