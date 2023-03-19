@@ -8,7 +8,7 @@ import time
 from bs4 import BeautifulSoup
 import vk_api
 from vk_api.bot_longpoll import VkBotEventType, VkBotLongPoll
-from config import tok,mongo,s_key,p,token_berdoff,app_id,oauth_key,str_token,token_tg
+from config import tok,mongo,s_key,p,token_berdoff,app_id,oauth_key,str_token,token_tg,tok_so,token_queen
 import random
 import testip
 import hashlib
@@ -16,10 +16,16 @@ import aiohttp
 import asyncio
 import imaplib
 import telebot
-from fastapi import FastAPI,Form
+from starlette.background import BackgroundTask
+import codecs
+
+
+from fastapi import FastAPI,Form, Request
 from typing import Optional
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse,PlainTextResponse,JSONResponse,RedirectResponse
+from fastapi.responses import HTMLResponse,PlainTextResponse,JSONResponse,RedirectResponse,FileResponse
+import uvicorn
+
 
 
 templates = Jinja2Templates(directory="templates")
@@ -34,10 +40,14 @@ rakbots_dostup=db["RAKBOT_DOSTUP"]
 antiblat_collection=db["ANTIBLAT_21"]
 quests_collection=db["QUESTS_21"]
 slet_logs=db["SLET_LOGS_21"]
+forms_so=db["FORMS_SO"]
 
 #SECRET_KEY=s_key
 app = FastAPI()
 #login_manager = LoginManager(app)
+
+
+
 
 def norm_money(money):
     money=list(str(money))
@@ -178,6 +188,19 @@ def s_id(id,text):
     else:
         vk_session.method('messages.send', {'chat_id': id, 'message': text, 'disable_mentions': 1, 'random_id': 0})
 
+def s_id_so(id,text):
+    a=text.split("\n")
+    b = ""
+    if len(text) > 1200:
+        for i in a:
+            b += i + "\n"
+            if len(b) > 1200:
+                print(b)
+                vk_session_so.method('messages.send', {'chat_id': id, 'message': b, 'disable_mentions': 1, 'random_id': 0})
+                b = ""
+        vk_session_so.method('messages.send', {'chat_id': id, 'message': b, 'disable_mentions': 1, 'random_id': 0})
+    else:
+        vk_session_so.method('messages.send', {'chat_id': id, 'message': text, 'disable_mentions': 1, 'random_id': 0})
 
 def send_to_user(idd,text):
     a=text.split("\n")
@@ -192,10 +215,29 @@ def send_to_user(idd,text):
     else:
         vk_session.method('messages.send', {'user_id': idd, 'message': text, 'disable_mentions': 1, 'random_id': 0})
 
+def send_to_user_queen(idd,text):
+    a=text.split("\n")
+    b = ""
+    if len(text) > 1200:
+        for i in a:
+            b += i + "\n"
+            if len(b) > 1200:
+                vk_session_queen.method('messages.send', {'user_id': idd, 'message': b, 'disable_mentions': 1, 'random_id': 0})
+                b = ""
+        vk_session.method_queen('messages.send', {'user_id': idd, 'message': b, 'disable_mentions': 1, 'random_id': 0})
+    else:
+        vk_session.method_queen('messages.send', {'user_id': idd, 'message': text, 'disable_mentions': 1, 'random_id': 0})
+
 
 vk_session = vk_api.VkApi(token = tok)
 longpoll = VkBotLongPoll(vk_session,212957523)
 
+
+vk_session_queen = vk_api.VkApi(token = token_queen)
+longpoll = VkBotLongPoll(vk_session_queen,212976182)
+
+vk_session_so = vk_api.VkApi(token = tok_so)
+longpoll = VkBotLongPoll(vk_session_so,213806492)
 
 session=vk_api.VkApi(token=str_token)
 vk=session.get_api()
@@ -207,6 +249,8 @@ sess.headers.update(header)
 sess.cookies.update(json.loads(xsrf))
 
 
+header = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Atom/13.0.0.44 Safari/537.36'}
+       
 
 
 fracs={
@@ -303,6 +347,16 @@ vigs_cf={
     25:19
 }
 
+
+captures_name={
+    "The Rifa":15,
+    "East Side Ballas":13,
+    "Los Santos Vagos":12,
+    "Varrios Los Aztecas":14,
+    "Grove Street":11,
+    "Night Wolves":25
+
+}
 
 def set_warn(nick,edit,id_authora):
     prichina="Задания на сайте"
@@ -401,14 +455,12 @@ class User():
 def load_user(user_id):
     return User().fromDB(user_id)
 """
-trusted_ips = ['45.93.200.98', '185.36.143.118', '188.225.43.225','46.0.19.168',"162.158.87.148"]
 
 
 
-
-@app.get("/")
+@app.get("/",response_class=HTMLResponse)
 async def main():
-    return "1"
+    return """Working"""
 """
 @app.get("/profile")
 @login_required
@@ -593,10 +645,34 @@ async def delll(code: str = Form(),token: str = Form()):
     else:
         return "Не вошло"+" "+get_token(a)+" "+code+"\n"
 
-@app.get("/api/newcapture")
+async def time_capt(banda2):
+        illegals_collection.update_one({"frac_id":captures_name[banda2],"dostup":"1"},{"$set":{"active_capt":1}})
+        await asyncio.sleep(900)
+        illegals_collection.update_one({"frac_id":captures_name[banda2],"dostup":"1"},{"$set":{"active_capt":0}})
+        illegals_collection.update_one({"frac_id":captures_name[banda2],"dostup":"1"},{"$set":{"get_otkazi":0}})
+@app.post("/api/newcapture")
 async def new_capture(token: str = Form(),text: str = Form()):
-        s_id(6,str(text).replace("{B7AFAF}","")[2:-2])
+    if token==token_berdoff:
+        
+        s_id(6,str(text).encode('latin1').decode('cp1251').replace("{B7AFAF}",""))
+        s_id(10,str(text).encode('latin1').decode('cp1251').replace("{B7AFAF}",""))
+        banda2=str(text).encode('latin1').decode('cp1251').replace("{B7AFAF}","").split("банды")[1].split("(")[0].strip()
+        asyncio.create_task(time_capt(banda2))
         return True
+
+@app.get("/api/get_reload",response_class=PlainTextResponse)
+async def get_reload(token: str):
+    if token==token_berdoff:
+        status=loggs.find_one({"type":"update"})["status"]
+        print(status)
+        loggs.update_one({"type":"update"},{"$set":{"status":0}})
+        return str(status)
+
+@app.get("/api/rebootbot")
+async def reboot_bot(token: str = Form()):
+    if token==token_berdoff:
+        s_id(1,"QueenBot перезапущен")
+    
 
 
 @app.get("/checklogs",response_class=PlainTextResponse)
@@ -628,15 +704,15 @@ async def slet_log(nick: str = Form(), token: str = Form(), ids: str = Form(), t
         return True
 
 
-@app.get("/api/topsecret")
-async def topsecret(token: str = Form(), nick: str = Form(), id_ka: str = Form()):
+@app.post("/api/topsecret")
+async def topsecret(token: str = Form(), nick: str = Form(), id: str = Form()):
     if token==token_berdoff:
-        Alert(1,f"@berdofff @lorenzo_almas\n Красный на сервере: {nick}[{id_ka}]")
-        Alert(1,f"@berdofff @lorenzo_almas\n Красный на сервере: {nick}[{id_ka}]")
-        Alert(1,f"@berdofff @lorenzo_almas\n Красный на сервере: {nick}[{id_ka}]")
-        bot.send_message("-834352877", f"@berdofff @maryan_solonynko\n Красный на сервере: {nick}[{id_ka}]")
-        bot.send_message("-834352877", f"@berdofff @maryan_solonynko\n Красный на сервере: {nick}[{id_ka}]")
-        bot.send_message("-834352877", f"@berdofff @maryan_solonynko\n Красный на сервере: {nick}[{id_ka}]")
+        Alert(1,f"@berdofff @lorenzo_almas\n Красный на сервере: {nick}[{id}]")
+        Alert(1,f"@berdofff @lorenzo_almas\n Красный на сервере: {nick}[{id}]")
+        Alert(1,f"@berdofff @lorenzo_almas\n Красный на сервере: {nick}[{id}]")
+        bot.send_message("-834352877", f"@berdofff @maryan_solonynko\n Красный на сервере: {nick}[{id}]")
+        bot.send_message("-834352877", f"@berdofff @maryan_solonynko\n Красный на сервере: {nick}[{id}]")
+        bot.send_message("-834352877", f"@berdofff @maryan_solonynko\n Красный на сервере: {nick}[{id}]")
 
 @app.post("/api/accepts")
 async def accepts(token:str = Form(),nick:str=Form()):
@@ -672,6 +748,12 @@ def auth_vk():
             return render_template("index1.html")
             
 """
+
+
+@app.get("/berdoff_check")
+def download_file():
+  return FileResponse(path='files/proverka.exe', filename='check by berdoff.exe', media_type='multipart/form-data')
+
 
 @app.get("/loadlogsdawdawdwadwadwadwadwa2121",response_class=PlainTextResponse)
 async def load_7days(nick: str = Form(),token: str = Form(),server: str = Form()):
@@ -948,6 +1030,133 @@ async def load_30days(nick: str = Form(),token: str = Form(),server: str = Form(
     else:
         return "Access denied"
 
+@app.get("/api/loadfulllog",response_class=PlainTextResponse)
+async def load_fulllog(nick: str = Form(),token: str = Form(),server: str = Form()):
+    global logs
+    if len(token)<40 and token==token_berdoff:
+        header = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Atom/13.0.0.44 Safari/537.36'}
+        xsrf=loggs.find_one({"type":"token"})["session"].replace("\'","\"")
+        async with aiohttp.ClientSession() as sess:
+
+            a="Queen-Creek"
+            if "Queen-Creek" in a:
+                logs=await sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&type%5B%5D=login&sort=desc&player={nick}",headers=header,cookies=json.loads(xsrf))
+                logs=await logs.text()
+                logs=BeautifulSoup(logs,"lxml")
+                stroka=logs.find_all("tr")[1]
+                reg_ip = stroka.find_all("span", class_="badge badge-primary")[0].text
+                last_ip = stroka.find_all("span", class_="badge badge-secondary")[0].text
+                last_info = testip.get_info_by_ip(last_ip)
+                last_city = last_info["city"]
+                last_region = last_info["region"]
+                reg_info = testip.get_info_by_ip(reg_ip)
+                reg_city = reg_info["city"]
+                reg_region = reg_info["region"]
+                nick=stroka.text.split()[3]
+                last_auth=stroka.text.split()[0]+" "+stroka.text.split()[1]
+                id_acc=stroka.find_all("div",class_="app__hidden")[0].find_all("li")[0].find("code").text
+                logs=await sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&type%5B%5D=login&type%5B%5D=disconnect&sort=desc&player={id_acc}",headers=header,cookies=json.loads(xsrf))
+                logs=await logs.text()
+                logs=BeautifulSoup(logs,"lxml")
+                stroka=logs.find_all("tr")[1:]
+                for i in stroka:
+                    if "авторизация: Есть" in i.text or "авторизовался" in i.text:
+                        stroka=i
+                        break
+                nick=stroka.text.split()[3]
+                vc_money=stroka.find_all("div",class_="app__hidden")[0].find_all("li")[1].find("code").text
+                lich1_money=stroka.find_all("div",class_="app__hidden")[0].find_all("li")[2].find("code").text
+                lich2_money=stroka.find_all("div",class_="app__hidden")[0].find_all("li")[3].find("code").text
+                lich3_money=stroka.find_all("div",class_="app__hidden")[0].find_all("li")[4].find("code").text
+                deposit=stroka.find_all("div",class_="app__hidden")[0].find_all("li")[5].find("code").text
+                if lich1_money=="4,294,967,295":
+                    lich1_money="0"
+                if lich2_money=="4,294,967,295":
+                    lich2_money="0"
+                if lich3_money=="4,294,967,295":
+                    lich3_money="0"
+                money_nal=stroka.find_all("code")[1].text
+                money_bank=stroka.find_all("code")[2].text
+                donate=stroka.find_all("code")[3].text
+                money_all=norm_money(int(money_nal.replace(",",""))+int(money_bank.replace(",",""))+int(deposit.replace(",",""))+int(lich1_money.replace(",",""))+int(lich2_money.replace(",",""))+int(lich3_money.replace(",","")))
+                lvl_adm=stroka.find_all("div",class_="app__hidden")[0].find_all("li")[6].find("code").text
+                if lvl_adm!="0":
+                    lvl_adm="Уровень адм: "+lvl_adm+"<br>"
+                else:
+                    lvl_adm=""
+
+                try:
+                    ban=await sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&type%5B%5D=ban&type%5B%5D=unban&sort=desc&player={nick}",headers=header,cookies=json.loads(xsrf))
+                    ban=await ban.text()
+                    logs=BeautifulSoup(ban,"lxml")
+                    stroki=logs.find_all("tr")[1]
+                    if "забанил" in stroki.text:
+                        if stroki.text.split()[6]==nick:
+                            day=int(stroki.text.split()[8])
+                            last_ban=datetime.datetime.strptime(stroki.text.split()[0]+" "+stroki.text.split()[1], '%Y-%m-%d %H:%M:%S')
+                            last_ban=int(str(time.mktime(last_ban.timetuple())).split(".")[0])
+                            now_time=int(str(time.time()).split(".")[0])+10800
+                            if (now_time-int(last_ban))<(day*86400):
+                                bban=" ".join(stroki.text.split("I:")[0].strip().split())
+                                prichina=bban.split("причина: ")[1]
+                                ban_do=str(datetime.datetime.utcfromtimestamp(int(last_ban)+(day*86400)).strftime('%Y-%m-%d %H:%M:%S'))
+                                bban=f"<br>⛔Забанен за {prichina}⛔<br>Забанил: "+bban.split()[3]+"<br>Дата блокировки: "+stroki.text.split()[0]+" "+stroki.text.split()[1]+f"<br>Бан до {ban_do}"
+                            else:
+                                bban="✅ Аккаунт не заблокирован"
+                        else:
+                            bban="✅ Аккаунт не заблокирован"
+                    else:
+                        bban="✅ Аккаунт не заблокирован"
+                except:
+                    bban="✅ Аккаунт не заблокирован"
+                strr=[]
+                k=1
+                url=""
+                print("Load logs")
+                for i in range(18):
+                    url+=random.choice("ASGVODWUIQPOXIMHWAPOIMdjopawicpmha1235432179796")
+                print(url)
+                f=open(f"logs/{url}.txt","w")
+                f.write(f"Ник: {nick}[{id_acc}] Server: [{server}]<br>{lvl_adm}Az-Coin: {donate}<br>На руках: {money_nal}$<br>Банк: {money_bank}$<br>Депозит: {deposit}$<br>VC: {vc_money}$<br>Личный счет №1: {lich1_money}$<br>Личный счет №2: {lich2_money}$<br>Личный счет №3: {lich3_money}$<br>Всего денег: {money_all}$<br>Последний вход: {last_auth}<br>R-IP: {reg_ip} [{reg_city},{reg_region}]<br>L-IP: {last_ip} [{last_city},{last_region}]<br>{bban}<br><br><br>")
+                
+                
+                logs=await sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&sort=desc&player={id_acc}&limit=1000&page={k}",headers=header,cookies=json.loads(xsrf))
+                logs=await logs.text()
+                
+                while "Игрок" in logs or "Администратор" in logs:
+                    print(k)
+                    logs=BeautifulSoup(logs,"lxml")
+                    stroka=logs.find_all("tr")[1:]
+                    for i in stroka:
+                        if "авторизовался" in i.text or "авторизация: Есть" in i.text:
+                            f.write(" ".join(i.text.split("I:")[0].strip().split())+" [R-IP: "+i.find_all("span", class_="badge badge-primary")[0].text+" L-IP: "+i.find_all("span", class_="badge badge-secondary")[0].text+"]"+"<br>")
+                        elif "$" in i.text:
+                            vc_money=i.find_all("div",class_="app__hidden")[0].find_all("li")[1].find("code").text
+                            money_nal=i.find_all("code")[1].text
+                            money_bank=i.find_all("code")[2].text
+                            donate=i.find_all("code")[3].text
+                            try:
+                                if server=="201":
+                                    f.write(" ".join(i.text.split("I:")[0].strip().split())+f""" (<font color="#00FF00">VC: {vc_money}$</font>,<font color="#006400">Bank: {money_bank}$</font>,<font color="#B22222">Donate: {donate}</font>)<br>""")
+                                else:
+                                    f.write(" ".join(i.text.split("I:")[0].strip().split())+f""" (<font color="#00FF00">Money: {money_nal}$</font>,<font color="#006400">Bank: {money_bank}$</font>,<font color="#B22222">Donate: {donate}</font>)<br>""")
+                            except:
+                                f.write(" ".join(i.text.split("I:")[0].strip().split())+"<br>")
+                        else:
+                            f.write(" ".join(i.text.split("I:")[0].strip().split())+"<br>")
+                    k+=1
+                    logs=await sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&sort=desc&player={id_acc}&limit=1000&page={k}",headers=header,cookies=json.loads(xsrf))
+                    logs=await logs.text()
+                
+                f.close()
+                return url
+            else:
+                return "-"
+    else:
+        return "Access denied"
+
+
+
 @app.get("/getlogs",response_class=HTMLResponse)
 async def get_7days(token: str):
     global logs
@@ -961,10 +1170,40 @@ async def get_7days(token: str):
         except:
             return "Ошибка"
 
+@app.post("/api/upd_data")
+async def upd_data(request: Request,token: str=Form(),server: str=Form(),data: str=Form(),typee: str=Form()):
+    data=data.replace("{FFFFFF}","")
+    data=data.replace("{BE433D}","")
+    data=data.replace("{ffffff}","")
+    data=data.replace("{ffff00}","")
+    data=data.replace("{cccccc}","")
+    data=data.replace("{ff0000}","")
+    data=data.replace("{CCCCCC}","")
+    if server=="so":
+        forms_so.update_one({"type":"data"},{"$set":{typee:data.encode('latin1').decode('cp1251')}})
+    if server=="21":
+        print(data.encode('latin1'))
+        collection.update_one({"type":"data"},{"$set":{typee:data.encode('latin1').decode('cp1251')}})
+
+
+
+@app.post("/api/monitoring_chat")
+async def monitoring_chat(request: Request,token: str=Form(),server: str=Form(),data: str=Form(),typee: str=Form()):
+    if server=="so":
+        data=data.replace("{FFFFFF}","")
+        data=data.replace("{BE433D}","")
+        data=data.replace("{ffffff}","")
+        data=data.replace("{ffff00}","")
+        data=data.replace("{cccccc}","")
+        data=data.replace("{ff0000}","")
+        data=data.replace("{CCCCCC}","")
+        forms_so.update_one({"type":"data"},{"$set":{typee:""}})
+        s_id_so(2,data.encode('latin1').decode('cp1251'))
+
 
 @app.get("/getonline")
-async def getonl(token: str=Form(),nick: str=Form(),server: str=Form()):
-    server="21"
+async def getonl(request: Request,token: str=Form(),nick: str=Form(),server: str=Form()):
+    #server="21"
     reps=False
     if token == token_berdoff:
         header = {
@@ -1074,6 +1313,176 @@ async def getonl(token: str=Form(),nick: str=Form(),server: str=Form()):
                                 online["reports"][i]=online["reports"][i]+logs.text.count(i)
                             print(k)        
                             k+=1
+                            
+                            logs=await sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&type%5B%5D=report_answer&sort=desc&min_period={year}-{month}-{day}+00%3A00%3A00&max_period={year_today}-{month_today}-{day_today}+00%3A00%3A00&player={nick}&limit=1000&page={k}")
+                            logs = BeautifulSoup(await logs.text(), "lxml")
+                            logs=logs.find("table",class_="table table-hover")
+                        
+                    except:
+                        pass
+                online["reports"]["check"]=str(reps)
+                print(online)
+                return online
+
+            else:
+                return {"status": "ne ok", "reason": "Логи не авторизованы"}
+
+@app.get("/api/mreports")
+async def mreports(request: Request,token: str=Form(),server: str=Form(),days: str=Form()):
+    #server="21"
+    reps=False
+    dayss=int(days)
+    print(dayss)
+    if token == token_berdoff:
+        header = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Atom/13.0.0.44 Safari/537.36'}
+        xsrf=loggs.find_one({"type":"token"})["session"].replace("\'","\"")
+        async with aiohttp.ClientSession() as sess:
+            a = await sess.get("https://arizonarp.logsparser.info/",headers=header,cookies=json.loads(xsrf))
+            if "Queen-Creek" in await a.text():
+                reports={"reports":{}}
+                
+                date = datetime.datetime.now()-datetime.timedelta(days=dayss)
+                for i in range(dayss):
+                    date=date+datetime.timedelta(days=1)
+                    year = str(date.year)
+                    if len(str(date.month)) == 1:
+                        month = "0" + str(date.month)
+                    else:
+                        month = str(date.month)
+                    if len(str(date.day)) == 1:
+                        day = "0" + str(date.day)
+                    else:
+                        day = str(date.day)
+                    
+                    logs= await sess.get(url=f"https://arizonarp.logsparser.info/?server_number={server}&type%5B%5D=report_answer&sort=desc&min_period={year}-{month}-{day}+00%3A00%3A00&max_period={year}-{month}-{day}+23%3A59%3A59&limit=100")
+                    logs = BeautifulSoup(await logs.text(), "lxml")
+                    print(f"{year}-{month}-{day}")
+                    try:
+                        reports["reports"][f"{year}-{month}-{day}"]=int(logs.find_all("div",class_="d-flex col-sm-12 justify-content-between")[0].find_all("p",class_="text-muted")[0].text.split("из")[1])
+                    except:
+                        reports["reports"][f"{year}-{month}-{day}"]=int(logs.text.count("ответил на репорт"))
+                    print(reports)
+                return reports
+                    
+                
+                
+
+
+
+
+@app.get("/getmonline")
+async def getmonl(request: Request,token: str=Form(),nick: str=Form(),server: str=Form()):
+    #server="21"
+    reps=False
+    if token == token_berdoff:
+        header = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Atom/13.0.0.44 Safari/537.36'}
+        xsrf=loggs.find_one({"type":"token"})["session"].replace("\'","\"")
+        async with aiohttp.ClientSession() as sess:
+            print(nick)
+            a = await sess.get("https://arizonarp.logsparser.info/",headers=header,cookies=json.loads(xsrf))
+            if "Queen-Creek" in await a.text():
+                date = datetime.datetime.now()+datetime.timedelta(days=1)
+                year_today = date.year
+                if len(str(date.month)) == 1:
+                    month_today = "0" + str(date.month)
+                else:
+                    month_today = str(date.month)
+                if len(str(date.day)) == 1:
+                    day_today = "0" + str(date.day)
+                else:
+                    day_today = str(date.day)
+                date = date - datetime.timedelta(days=32)
+                year = str(date.year)
+                if len(str(date.month)) == 1:
+                    month = "0" + str(date.month)
+                else:
+                    month = str(date.month)
+                if len(str(date.day)) == 1:
+                    day = "0" + str(date.day)
+                else:
+                    day = str(date.day)
+                logs= await sess.get(url=f"https://arizonarp.logsparser.info/?server_number={server}&type%5B%5D=login&type%5B%5D=disconnect&sort=desc&min_period={year}-{month}-{day}+00%3A00%3A00&max_period={year_today}-{month_today}-{day_today}+00%3A00%3A00&player={nick}&limit=1000")
+                logs = BeautifulSoup(await logs.text(), "lxml")
+                stroki = logs.find_all("tr")[1:]
+                online={"online":{},"reports":{}}
+                print(server)
+                try:
+                    lvl_adm=stroki[0].find_all("div",class_="app__hidden")[0].find_all("li")[6].find("code").text.strip()
+                except:
+                    lvl_adm="0"
+                print(lvl_adm)
+                if str(lvl_adm)!="0":
+                    reps=True
+                print(reps)
+                try:
+                    i=stroki[0]
+                    i = " ".join(i.text.split("I:")[0].strip().split())
+                    dday=i.split()[0]
+                    ctime=0
+                    gtime=0
+                    
+                    if "авторизовался" in i:
+                        date = datetime.datetime.now()-datetime.datetime.strptime(i.split()[0]+" "+i.split()[1], '%Y-%m-%d %H:%M:%S')
+                        date=datetime.datetime.strptime(str(date).split(".")[0], '%H:%M:%S')
+                        data=str(date.hour)+":"+str(date.minute)+":"+str(date.second)
+                        ctime+=get_int_time(data)
+                    for i in stroki:
+                        i = " ".join(i.text.split("I:")[0].strip().split())
+                        if "Есть" in i:
+                            if dday==i.split()[0]:
+                                if get_int_time(i.split()[1])<get_int_time(i.split("сессии:")[1].split(",")[0]):
+                                    print(str(i.split()[1]),str(i.split("сессии:")[1].split(",")[0]))
+                                    ctime+=get_int_time(i.split()[1])
+                                    gtime=get_int_time(i.split("сессии:")[1].split(",")[0])-get_int_time(i.split()[1])
+                                else:
+                                    gtime=0
+                                    ctime+=get_int_time(i.split("сессии:")[1].split(",")[0])
+                            else:
+                                online["online"][dday]=get_normal_time(ctime)
+                                ctime=0
+                                ctime+=gtime
+                                gtime=0
+                                dday=i.split()[0]
+                                if get_int_time(i.split()[1]) < get_int_time(i.split("сессии:")[1].split(",")[0]):
+                                    print(str(i.split()[1]), str(i.split("сессии:")[1].split(",")[0]))
+                                    ctime += get_int_time(i.split()[1])
+                                    gtime = get_int_time(i.split("сессии:")[1].split(",")[0]) - get_int_time(i.split()[1])
+                                else:
+                                    gtime = 0
+                                    ctime += get_int_time(i.split("сессии:")[1].split(",")[0])
+                    
+                    k=1
+                except:
+                    pass
+                if reps:
+                    try:
+                        reports=0
+                        date = datetime.datetime.now()+datetime.timedelta(days=1)
+                        for i in range(32):
+                            date=date-datetime.timedelta(days=1)
+                            dd=""
+                            dd+=str(date.year)+"-"
+                            if len(str(date.month)) == 1:
+                                dd += "0" + str(date.month)+"-"
+                            else:
+                                dd += str(date.month)+"-"
+                            if len(str(date.day)) == 1:
+                                dd += "0" + str(date.day)
+                            else:
+                                dd += str(date.day)
+                        
+                            online["reports"][dd]=0
+                        logs=await sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&type%5B%5D=report_answer&sort=desc&min_period={year}-{month}-{day}+00%3A00%3A00&max_period={year_today}-{month_today}-{day_today}+00%3A00%3A00&player={nick}&limit=1000&page={k}")
+                        logs = BeautifulSoup(await logs.text(), "lxml")
+                        logs=logs.find("table",class_="table table-hover")
+                        
+                        while "ответил на репорт" in logs.text:
+                            for i in online["reports"]:
+                                online["reports"][i]=online["reports"][i]+logs.text.count(i)
+                            print(k)        
+                            k+=1
                             logs=await sess.get(f"https://arizonarp.logsparser.info/?server_number={server}&type%5B%5D=report_answer&sort=desc&min_period={year}-{month}-{day}+00%3A00%3A00&max_period={year_today}-{month_today}-{day_today}+00%3A00%3A00&player={nick}&limit=1000&page={k}")
                             logs = BeautifulSoup(await logs.text(), "lxml")
                             logs=logs.find("table",class_="table table-hover")
@@ -1091,11 +1500,13 @@ async def getonl(token: str=Form(),nick: str=Form(),server: str=Form()):
 @app.post("/api/getpunish",response_class=HTMLResponse)
 async def get_punish(token: str = Form(),nick: str = Form()):
         if token==token_berdoff:
-            return sess.get(f"https://arizonarp.logsparser.info/?server_number=21&type%5B%5D=rmute&type%5B%5D=unrmute&type%5B%5D=skick&type%5B%5D=weap&type%5B%5D=spawnplayer&type%5B%5D=ban&type%5B%5D=jail&type%5B%5D=kick&type%5B%5D=mute&type%5B%5D=uval&type%5B%5D=warn&type%5B%5D=banip&type%5B%5D=unban&type%5B%5D=unjail&type%5B%5D=unmute&type%5B%5D=unwarn&type%5B%5D=unwarn_talon&sort=desc&player={nick}").text
+            xsrf=loggs.find_one({"type":"token"})["session"].replace("\'","\"")
+            async with aiohttp.ClientSession() as sess:
+                a=await sess.get(f"https://arizonarp.logsparser.info/?server_number=21&type%5B%5D=rmute&type%5B%5D=unrmute&type%5B%5D=skick&type%5B%5D=weap&type%5B%5D=spawnplayer&type%5B%5D=ban&type%5B%5D=jail&type%5B%5D=kick&type%5B%5D=mute&type%5B%5D=uval&type%5B%5D=warn&type%5B%5D=banip&type%5B%5D=unban&type%5B%5D=unjail&type%5B%5D=unmute&type%5B%5D=unwarn&type%5B%5D=unwarn_talon&sort=desc&player={nick}",headers=header,cookies=json.loads(xsrf))
+                return await a.text()
 
 
-
-@app.get("/api/getrakbot")
+@app.get("/api/getrakbot",response_class=JSONResponse)
 async def get_rakbot(token:str):
     if token_berdoff==token_berdoff:
         rks=[]
@@ -1104,7 +1515,7 @@ async def get_rakbot(token:str):
             ttime=i["time"]
             if int(time.time())-int(ttime)>300:
                 rakbots.delete_one({"vk":i["vk"],"time":ttime})
-                send_to_user(i["vk"],f"Снятие ракбота завершено по истечению 5 минут")
+                send_to_user_queen(i["vk"],f"Снятие ракбота завершено по истечению 5 минут")
         return rks
 """
 @app.get("/api/sendbiz")
@@ -1134,12 +1545,12 @@ async def add_rakbot(nick:str = Form(),vk: str = Form(),ip: str = Form(),token: 
             rakbots.insert_one({"nick":nick,"vk":vk,"IP":ip,"time":tttime})
 
 @app.get("/api/dellrakbot")
-async def dell_rakbot(token:str,nick:str):
+async def dell_rakbot(token:str,nick:str,vk:str):
     if token==token_berdoff:
         rakbots.delete_one({"nick":nick})
         try:
-            vk=rakbots_dostup.find_one({"nick":nick})["vk"]
-            send_to_user(vk,f"Ракбот успешно снят {nick}")
+            
+            send_to_user_queen(vk,f"Ракбот успешно снят {nick}")
         except:
             chat_sender(f"Ракбот успешно снят {nick}")
         return "True"
@@ -1190,15 +1601,24 @@ async def get_join(token: str = Form()):
                 return {"status":"ne ok","reason":"Логи не авторизованы"}
 
 @app.get("/api/forms",response_class=PlainTextResponse)
-async def go_form(token: str, check: str):
+async def go_form(token: str, server: str):
     header = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Atom/13.0.0.44 Safari/537.36'}
     #if token=="321321dwadwad21" and check=="1":
-    a=collection.find({"status":0})
+    
     if token==token_berdoff:
+        
         forms=[]
-        for i in a:
-            forms.append(i["forma"])
-            collection.update_one(i,{"$set":{"status":1}})
+        if server=="21":
+            a=collection.find({"status":0})
+            for i in a:
+                forms.append(i["forma"])
+                collection.update_one(i,{"$set":{"status":1}})
+        elif server=="so":
+            a=forms_so.find({"status":0})
+            for i in a:
+                forms.append(i["forma"])
+                forms_so.update_one(i,{"$set":{"status":1}})
+        
         return json.dumps(forms)
 
 @app.get("/api/forms_plus")
@@ -1239,5 +1659,9 @@ async def forms_plus():
 @app.get("/queen/chat")
 async def get_chat():
     return True
+
+
+if __name__=='__main__':
+    uvicorn.run("main:app",host="0.0.0.0",port=443,reload=False,ssl_keyfile="/etc/letsencrypt/live/berdoff.ru/privkey.pem",ssl_certfile="/etc/letsencrypt/live/berdoff.ru/fullchain.pem",log_config="/root/site/log.ini")
 
 
